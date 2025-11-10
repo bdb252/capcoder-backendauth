@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<div class="nav-icons">
+			<div class="nav-item" onclick="location.href='/'">
+				<span>로고</span>
+			</div>
+			<div class="nav-item" onclick="location.href='/login.do'">
+				<span>로그인</span>
+			</div>
+			<div class="nav-item" onclick="location.href='/regist.do'">
+				<span>회원가입</span>
+			</div>
+			<div class="nav-item" onclick="location.href='/index.do'">
+				<span>메인페이지</span>
+			</div>
+			<div class="nav-item" onclick="location.href='/mypage.do'">
+				<span>마이페이지</span>
+			</div>
+		</div>
+	<h1>마이페이지</h1>
+	
+
+	<form method="post" action="/member/mypage.do" th:object="${member}">
+		<p><b>아이디:</b><input type="text" th:field="*{userId}" readonly><br/>
+	  <label>이름</label>
+	  <input type="text" th:field="*{name}"><br/>
+	  
+	  <label>성별</label>
+	  <select th:field="*{gender}">
+	    <option value="">선택</option>
+	    <option value="M">남</option>
+	    <option value="F">여</option>
+	  </select><br/>
+
+	  <label>키(cm)</label>
+	  <input type="number" th:field="*{height}"><br/>
+
+	  <label>몸무게(kg)</label>
+	  <input type="number" step="0.1" th:field="*{weight}"><br/>
+
+	  <label>생년월일</label>
+	  <span th:text="*{birthDate}">미입력</span>
+	  <input type="date" th:field="*{birthDate}"><br/>
+
+	  <button type="submit">저장</button>
+	</form>
+
+	<a href="/member/logout.do">로그아웃</a>
+</body>
+</html>
