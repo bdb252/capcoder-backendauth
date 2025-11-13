@@ -29,6 +29,7 @@ public class UserService implements UserDetailsService{
 				.roles(userEntity.getRole()) // 사용자 권한 (예: "USER" 또는 "ADMIN")
 				.build();
 	}
+
 	// 중복확인
 	public boolean existsByUserId(String userId) {
 		return userRepository.existsByUserId(userId);
@@ -46,12 +47,17 @@ public class UserService implements UserDetailsService{
 		userRepository.save(member);
 	}
 
-	// 조회(개인)
+	// 조회(개인) - 로그인
 	public UserEntity findByUserId(String userId) {
 		return userRepository.findByUserId(userId)
 	            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 	}
-//
+
+	// 조회(DTO 반환)
+	public UserInfoDTO getUserInfo(String userId) {
+		UserEntity user = findByUserId(userId);
+		return UserInfoDTO.fromEntity(user);
+	}
 //	// 수정
 //	public void updateMember(UserEntity member) {
 //		userRepository.save(member);

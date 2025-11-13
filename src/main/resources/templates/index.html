@@ -74,7 +74,7 @@
 			<img id="previewImage" src="" alt="미리보기">
 		</div>
 
-		<button id="submitBtn" disabled onclick="uploadImage('/api/gemini/imagedb')">
+		<button id="submitBtn" disabled onclick="uploadImage()">
 			영양 성분 분석
 		</button>
 
@@ -127,7 +127,7 @@
 	});
 
 	// 이미지 업로드 함수
-	async function uploadImage(endpoint) {
+	async function uploadImage() {
 		if (!selectedFile) {
 			alert('이미지를 먼저 선택해주세요!');
 			return;
@@ -144,7 +144,7 @@
 
 		try {
 			// API 호출
-			const res = await fetch('http://localhost:8077' + endpoint, {
+			const res = await fetch('https://capcoder-backendauth.onrender.com/api/gemini/imagedb', {
 				method: 'POST',
 				body: formData
 			});
