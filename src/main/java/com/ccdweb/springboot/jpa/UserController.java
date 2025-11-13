@@ -102,13 +102,12 @@ public class UserController {
 	
 	// 로그인한 사용자의 DB 정보 조회
 	@GetMapping("/member/userInfo.do")
-	public ResponseEntity<UserInfoDTO> getUserInfo(
-		@AuthenticationPrincipal UserDetails userdetails){
-		if(userdetails == null){
+	public ResponseEntity<UserInfoDTO> getUserInfo(Authentication authentication){
+		if(authentication == null){
 			return ResponseEntity.status(401).build();
 		}
 
-		String userId = userdetails.getUsername();
+		String userId = (String) authentication.getPrincipal();
 		UserInfoDTO userInfo = userService.getUserInfo(userId);
 
 		return ResponseEntity.ok(userInfo);

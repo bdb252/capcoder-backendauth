@@ -9,8 +9,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.ccdweb.springboot.jpa.UserService;
+import com.ccdweb.springboot.jwt.JwtAuthFilter;
+import com.ccdweb.springboot.jwt.JwtUtil;
 
 import jakarta.servlet.DispatcherType;
 
@@ -21,6 +24,9 @@ public class WebSecurityConfig {
 	
 	@Autowired
 	private MyAuthFailureHandler myAuthFailureHandler;
+	
+	@Autowired
+	private JwtUtil jwtUtil;
 	
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -44,6 +50,10 @@ public class WebSecurityConfig {
 					// .anyRequest().authenticated()
 			);
 		
+		// JWT 필터 추가
+		http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+
+				
 		http.formLogin((formLogin) -> formLogin.disable());
 //		http.formLogin((formLogin) -> formLogin
 //				.loginPage("/login.do") //view 
@@ -65,6 +75,13 @@ public class WebSecurityConfig {
         		.accessDeniedHandler((req, res, e) -> res.sendError(403, "Forbidden")));
 		
 		return http.build();
+	}
+	
+	@Bean
+	public JwtAuthFilter jwtAuthFilter() {
+		JwtAuthFilter filter = new JwtAuthFilter();
+		filter.setJwtUtil(jwtUtil);
+		return filter;
 	}
 	
 	@Bean

@@ -19,6 +19,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	
 	@Autowired
     private JwtUtil jwtUtil;
+	
+	public JwtAuthFilter() {} //기본 생성자
+	
+	public void setJwtUtil(JwtUtil jwtUtil) {
+		this.jwtUtil = jwtUtil;
+	}
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -27,14 +33,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     		throws ServletException, IOException {
         
         String header = request.getHeader("Authorization");
-        
+        System.out.println("header: "+header);
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+            System.out.println("token: "+token);
             
             if (jwtUtil.validateToken(token)) {
                 String userId = jwtUtil.getUserIdFromToken(token);
                 String role = jwtUtil.getRoleFromToken(token);
                 
+                System.out.println("userId: "+userId + " role: "+role);
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
                 UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(authority));
