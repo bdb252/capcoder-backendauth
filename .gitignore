@@ -36,3 +36,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Python ###
+preprocessing/venv/
+preprocessing/__pycache__/
+preprocessing/*.pyc
+preprocessing/*.pyo

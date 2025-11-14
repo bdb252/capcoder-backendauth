@@ -14,9 +14,25 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+
 
 #gemini key
 gemini:
   api:
     url: ${GEMINI_URL}
     key: ${GEMINI_KEY}
+
+#data preload
+app:
+  data:
+    preload: true
