@@ -1,5 +1,7 @@
 package com.ccdweb.springboot.jpa;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,6 +46,8 @@ public class UserService implements UserDetailsService{
 		if (member.getRole() == null || member.getRole().isBlank()) {
 			member.setRole("USER");
 		}
+		// member.setCreatedAt(LocalDateTime.now());
+		// System.out.println(">>> createdAt before save = " + member.getCreatedAt());
 		userRepository.save(member);
 	}
 

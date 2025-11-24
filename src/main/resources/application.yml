@@ -22,8 +22,6 @@ spring:
         order_inserts: true
         order_updates: true
     generate-ddl: false
-    hibernate:
-      ddl-auto: update
 
 
 #gemini key
