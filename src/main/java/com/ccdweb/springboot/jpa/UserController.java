@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
 import com.ccdweb.springboot.jpa.userlog.UserLogRequestDTO;
+import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogService;
 import com.ccdweb.springboot.jwt.JwtUtil;
 
@@ -120,7 +121,7 @@ public class UserController {
 
 	// 마이페이지
 	@PostMapping("/member/mypage.do")
-	public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> profileData, // 변경: JSON 요청 처리
+	public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> profileData, 
 			Authentication auth) {
 
 		try {
@@ -163,42 +164,51 @@ public class UserController {
 	// userLog table에 개인 혈당 입력
 	@PostMapping("/my/glucoseAdd.do")
 	public ResponseEntity<?> addUserLog(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal String userId,
             @RequestBody UserLogRequestDTO request) {
 
-        if (userDetails == null) {
+        if (userId == null) {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
 
-        String userId = userDetails.getUsername(); // JWT에서 온 userId
         Integer glucose = request.getGlucose();
 
         if (glucose == null) {
             return ResponseEntity.badRequest().body("혈당값(glucose)은 필수입니다.");
         }
 
+        // 서비스 호출 -> 엔티티 저장
         UserLogEntity saved = userLogService.saveUserLog(userId, glucose);
 
-        return ResponseEntity.ok(saved);  // 바로 엔티티 반환 (나중에 DTO로 바꿔도 됨)
+        // 엔티티 → DTO 변환
+        UserLogResponseDTO response = UserLogResponseDTO.fromEntity(saved);
+        
+        return ResponseEntity.ok(response);
     }
 	
 	// 개별 혈당 조회
 	@GetMapping("/my/glucoseLog.do")
-	public ResponseEntity<List<UserLogEntity>> getMyLogs(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month
+	public ResponseEntity<List<UserLogResponseDTO>> getMyLogs(
+			@AuthenticationPrincipal String userId,
+			@RequestParam(name = "year", required = false) Integer year,
+            @RequestParam(name = "month", required = false) Integer month
 			) {
 
-		if (userDetails == null)
+		if (userId == null)
 			return ResponseEntity.status(401).build();
 
-		String userId = userDetails.getUsername();
 		LocalDate today = LocalDate.now();
         int y = (year != null) ? year : today.getYear();
         int m = (month != null) ? month : today.getMonthValue();
 
         List<UserLogEntity> logs = userLogService.getUserLogsMonth(userId, y, m);
-        return ResponseEntity.ok(logs);
+        
+        
+        List<UserLogResponseDTO> result = logs.stream()
+        		.map(UserLogResponseDTO::fromEntity)
+        		.toList();
+        
+        return ResponseEntity.ok(result);
 	}
 	
 //	//전체조회

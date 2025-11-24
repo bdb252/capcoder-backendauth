@@ -1,5 +1,5 @@
 package com.ccdweb.springboot.jpa.meallog;
 
-public class MealLogRequestDTO {
+public class MealLogResponseDTO {
 
 }

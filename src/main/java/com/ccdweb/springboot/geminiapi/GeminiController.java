@@ -29,9 +29,10 @@ public class GeminiController {
             		+ "몸무게 : \n"
             		+ "성별 : \n"
             		+ "나이 : \n"
-            		+ "어제 먹은 식단 : \n"
-            		+ "식사 후 2시간이 지났을 때 혈당 : \n"
-            		+ "위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 식단을 1가지 추천해줘."));
+            		+ "이전 식단 : \n"
+            		+ "이전 식사 후 2시간이 지났을 때 혈당 : \n"
+            		+ "위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 추천해줘."
+            		+ "'이전 식단'을 언급하면서 150자 이내로 응답해줘."));
         } catch (HttpClientErrorException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

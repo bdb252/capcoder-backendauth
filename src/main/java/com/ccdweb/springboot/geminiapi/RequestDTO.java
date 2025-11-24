@@ -81,7 +81,7 @@ public class RequestDTO {
         // 기본 생성 설정값 초기화
         this.generationConfig = new GenerationConfig();
         this.generationConfig.setCandidate_count(1);
-        this.generationConfig.setMax_output_tokens(100);
+        this.generationConfig.setMax_output_tokens(150);
         this.generationConfig.setTemperature(0.7);
     }
     

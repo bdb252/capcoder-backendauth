@@ -1,10 +1,14 @@
 package com.ccdweb.springboot.jpa.userlog;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserLogRequestDTO {
 	private Integer glucose;
+	
 }
