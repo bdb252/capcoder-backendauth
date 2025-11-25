@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ccdweb.springboot.jpa.meallog.MealLogRequestDTO;
+import com.ccdweb.springboot.jpa.meallog.MealLogService;
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
 import com.ccdweb.springboot.jpa.userlog.UserLogRequestDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
@@ -44,6 +45,9 @@ public class UserController {
 
 	@Autowired
 	private UserLogService userLogService;
+
+	@Autowired
+	private MealLogService mealLogService;
 
 	// 중복확인
 	@PostMapping("/member/checkId")
@@ -160,31 +164,6 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 		}
 	}
-
-	// userLog table에 개인 혈당 입력
-	@PostMapping("/my/glucoseAdd.do")
-	public ResponseEntity<?> addUserLog(
-            @AuthenticationPrincipal String userId,
-            @RequestBody UserLogRequestDTO request) {
-
-        if (userId == null) {
-            return ResponseEntity.status(401).body("로그인이 필요합니다.");
-        }
-
-        Integer glucose = request.getGlucose();
-
-        if (glucose == null) {
-            return ResponseEntity.badRequest().body("혈당값(glucose)은 필수입니다.");
-        }
-
-        // 서비스 호출 -> 엔티티 저장
-        UserLogEntity saved = userLogService.saveUserLog(userId, glucose);
-
-        // 엔티티 → DTO 변환
-        UserLogResponseDTO response = UserLogResponseDTO.fromEntity(saved);
-        
-        return ResponseEntity.ok(response);
-    }
 	
 	// 개별 혈당 조회
 	@GetMapping("/my/glucoseLog.do")
@@ -211,14 +190,53 @@ public class UserController {
         return ResponseEntity.ok(result);
 	}
 	
+	// 사용자가 먹은 식단 저장(meal_log) -> 모델 예측 -> 혈당 기록 저장(user_log)
+	@PostMapping("/my/MealAndUserLogAdd.do")
+	public ResponseEntity<?> mealPredict(@AuthenticationPrincipal String userId,
+        @RequestBody MealLogRequestDTO request) {
+		
+		if(userId == null){
+			return ResponseEntity.status(401).build();
+		}
+
+		UserLogResponseDTO response = mealLogService.saveMealAndPredict(userId, request);
+
+		return ResponseEntity.ok(response);
+	}
+
+	// 혈당 데이터 삭제
+	@PostMapping("/my/delete.do")
+	public String delete(@AuthenticationPrincipal String userId){
+		return "";
+	}
+	// userLog table에 개인 혈당 입력
+	// @PostMapping("/my/glucoseAdd.do")
+	// public ResponseEntity<?> addUserLog(
+    //         @AuthenticationPrincipal String userId,
+    //         @RequestBody UserLogRequestDTO request) {
+
+    //     if (userId == null) {
+    //         return ResponseEntity.status(401).body("로그인이 필요합니다.");
+    //     }
+
+    //     Integer glucose = request.getGlucose();
+
+    //     if (glucose == null) {
+    //         return ResponseEntity.badRequest().body("혈당값(glucose)은 필수입니다.");
+    //     }
+
+    //     // 서비스 호출 -> 엔티티 저장
+    //     UserLogEntity saved = userLogService.saveUserLog(userId, glucose);
+
+    //     // 엔티티 → DTO 변환
+    //     UserLogResponseDTO response = UserLogResponseDTO.fromEntity(saved);
+        
+    //     return ResponseEntity.ok(response);
+    // }
+
 //	//전체조회
 //	@GetMapping("/selectAll.do")
 //	public String selectAll(Model model) {
-//	}
-//	
-//	//삭제
-//	@GetMapping("/delete.do")
-//	public String delete(@RequestParam("id")Long p_id) {
 //	}
 //	
 //	//수정

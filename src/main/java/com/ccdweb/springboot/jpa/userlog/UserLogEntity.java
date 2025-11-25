@@ -25,7 +25,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Entity
 @Table(name = "user_log")
 public class UserLogEntity {

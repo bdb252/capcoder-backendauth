@@ -40,6 +40,9 @@ public class MealLogEntity {
 	@Column(name = "meal_description", length = 200, nullable = false)
 	private String meal_description;
     
+	// 모델 예측에 사용할 영양정보
+	// 추가 작성 필요
+
     @Column(name = "log_time")
     private LocalDateTime logTime;
     
