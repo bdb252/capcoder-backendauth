@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Base64;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -52,34 +53,57 @@ public class GeminiController {
         	UserEntity user = userRepository.findByUserId(userId)
         			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         	
-        	// 2) 가장 최근 식단
-        	MealLogEntity lastMeal = mealLogRepository.findTopByUserOrderByLogTimeDesc(user)
-        			.orElseThrow(() -> new IllegalArgumentException("최근 식단 기록이 존재하지 않습니다."));
-        	
-        	// 3) 해당 식단의 혈당 로그
-        	UserLogEntity glucose = userLogRepository.findByMeal(lastMeal)
-        			.orElseThrow(() -> new IllegalArgumentException("혈당 기록이 없습니다."));
-        	
-        	// 4) 나이 계산
+        	// 나이 계산
         	int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
 
-        	String prompt = """
-        			키 : %s
-        			몸무게 : %s
-        			성별 : %s
-        			나이 : %d
-        			이전 식단 : %s
-        			이전 식사 후 2시간이 지났을 때 혈당 : %d
-        			위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 추천해줘.
-        			'이전 식단'을 언급하면서 150자 이내로 응답해줘.
-        			"""
-        			.formatted(user.getHeight(),
-        					user.getWeight(),
-        					user.getGender(),
-        					age,
-        					lastMeal.getMeal_description(),
-        					glucose.getGlucose()
-        					);
+        	// 2) 가장 최근 식단
+        	Optional<MealLogEntity> optionalMeal = mealLogRepository.findTopByUserOrderByLogTimeDesc(user);
+
+        	String prompt = "";
+        	// 최근 식단이 없는 신규 사용자 처리 
+        	if(optionalMeal.isEmpty()) {
+        		prompt = """
+            			키 : %s
+            			몸무게 : %s
+            			성별 : %s
+            			나이 : %d
+            			위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 100자 이내로 추천해줘.
+            			개인 정보에 대한 나열은 빼고 식단 추천만 해줘.
+            			"""
+            				.formatted(user.getHeight(),
+            						user.getWeight(),
+            						user.getGender(),
+            						age
+            						);
+        		return ResponseEntity.ok().body(geminiService.getContents(prompt));
+        	}
+        	
+        	// 기존 사용자 처리
+            MealLogEntity lastMeal = optionalMeal.get();
+
+            // 3) 최근 식단의 혈당 조회
+            Optional<UserLogEntity> optionalLog = userLogRepository.findByMeal(lastMeal);
+        	
+            UserLogEntity lastLog = optionalLog.get();
+
+    		prompt = """
+    			키 : %s
+    			몸무게 : %s
+    			성별 : %s
+    			나이 : %d
+    			이전 식단 : %s
+    			이전 식사 후 2시간이 지났을 때 혈당 : %d
+    			위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 추천해줘.
+    			'이전 식단'을 언급하면서 150자 이내로 응답해줘.
+    			"""
+    				.formatted(user.getHeight(),
+    						user.getWeight(),
+    						user.getGender(),
+    						age,
+    						lastMeal.getMeal_description(),
+    						lastLog.getGlucose()
+    						);
+        	
         	System.out.println(prompt);
             return ResponseEntity.ok().body(geminiService.getContents(prompt));
         } catch (HttpClientErrorException e) {
@@ -99,7 +123,6 @@ public class GeminiController {
             // MIME 타입 가져오기 (예: image/jpeg, image/png)
             String mimeType = image.getContentType();
             
-//            return ResponseEntity.ok().body(geminiService.getContents(
         	return ResponseEntity.ok().body(geminiService.getContentsWithImage(
                 "이 음식 사진을 분석해서 음식 이름을 'meal_description'로, 일반적인 영양 성분을 'calorie', 'total_carb', 'sugar', 'protein', 'total_fat'로 계산해서 알려줘"+
         		"사진에 음식이 여러개 있으면 모두 분석해서 json형식으로 응답해줘.",
