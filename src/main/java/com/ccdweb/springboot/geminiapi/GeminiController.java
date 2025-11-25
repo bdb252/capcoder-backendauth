@@ -63,14 +63,16 @@ public class GeminiController {
         	// 4) 나이 계산
         	int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
 
-        	String prompt = "키 : %s"
-        			+ "몸무게 : %s"
-        			+ "성별 : %s"
-        			+ "나이 : %d"
-        			+ "이전 식단 : %s"
-        			+ "이전 식사 후 2시간이 지났을 때 혈당 : %d"
-        			+ "위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 추천해줘.%s"
-        			+ "'이전 식단'을 언급하면서 150자 이내로 응답해줘."
+        	String prompt = """
+        			키 : %s
+        			몸무게 : %s
+        			성별 : %s
+        			나이 : %d
+        			이전 식단 : %s
+        			이전 식사 후 2시간이 지났을 때 혈당 : %d
+        			위의 정보를 바탕으로, 혈당이 많이 오르지 않도록 적절한 한끼 식사를 추천해줘.
+        			'이전 식단'을 언급하면서 150자 이내로 응답해줘.
+        			"""
         			.formatted(user.getHeight(),
         					user.getWeight(),
         					user.getGender(),
