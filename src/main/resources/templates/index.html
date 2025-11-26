@@ -143,7 +143,8 @@
 		submitBtn.disabled = true;
 
 		try {
-			// API 호출
+			// API 호출 'https://capcoder-backendauth.onrender.com/api/gemini/imagedb'
+			//http://localhost:8077/api/gemini/imagedb
 			const res = await fetch('https://capcoder-backendauth.onrender.com/api/gemini/imagedb', {
 				method: 'POST',
 				body: formData
