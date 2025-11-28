@@ -16,4 +16,6 @@ public interface UserLogRepository extends JpaRepository<UserLogEntity, UUID> {
 	
 	// 특정 식단(meal)에 대해 가장 최근 혈당 로그
 	Optional<UserLogEntity> findByMeal(MealLogEntity meal);
+	// userId 체크해서 다른 사람 기록이 지워지지 않도록
+	Optional<UserLogEntity> findByLogidAndUserUserId(UUID logid, String userId);
 }

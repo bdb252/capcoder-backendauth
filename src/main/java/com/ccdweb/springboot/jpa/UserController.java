@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ccdweb.springboot.jpa.meallog.MealLogRequestDTO;
 import com.ccdweb.springboot.jpa.meallog.MealLogService;
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
-import com.ccdweb.springboot.jpa.userlog.UserLogRequestDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogService;
 import com.ccdweb.springboot.jwt.JwtUtil;
@@ -190,7 +191,7 @@ public class UserController {
         return ResponseEntity.ok(result);
 	}
 	
-	// 사용자가 먹은 식단 저장(meal_log) -> 모델 예측 -> 혈당 기록 저장(user_log)
+	// 사용자가 먹은 식단(meal_log), 혈당 기록 저장(user_log)
 	@PostMapping("/my/MealAndUserLogAdd.do")
 	public ResponseEntity<?> mealPredict(@AuthenticationPrincipal String userId,
         @RequestBody MealLogRequestDTO request) {
@@ -205,9 +206,17 @@ public class UserController {
 	}
 
 	// 혈당 데이터 삭제
-	@PostMapping("/my/delete.do")
-	public String delete(@AuthenticationPrincipal String userId){
-		return "";
+	@DeleteMapping("/my/delete.do")
+	public ResponseEntity<?> delete(@AuthenticationPrincipal String userId,
+		@RequestParam("logId") UUID logId){
+
+		if (userId == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		userLogService.deleteUserLog(userId, logId);
+
+		return ResponseEntity.ok("삭제되었습니다.");
 	}
 	// userLog table에 개인 혈당 입력
 	// @PostMapping("/my/glucoseAdd.do")
