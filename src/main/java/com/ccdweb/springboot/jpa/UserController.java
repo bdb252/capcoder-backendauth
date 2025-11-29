@@ -87,11 +87,18 @@ public class UserController {
 			String userId = loginData.get("userId");
 			String password = loginData.get("password");
 
+			// 사용자 존재 확인
+			UserEntity user = userService.findByUserId(userId);
+			if (user == null) {
+				System.out.println("❌ 사용자를 찾을 수 없음: " + userId);
+				Map<String, String> error = new HashMap<>();
+				error.put("error", "로그인 실패");
+				error.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+			}
+			
 			Authentication authentication = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(userId, password));
-
-			// 사용자 정보 가져오기
-			UserEntity user = userService.findByUserId(userId);
 
 			// JWT 토큰 생성
 			String token = jwtUtil.generateToken(user.getUserId(), user.getRole());
@@ -102,13 +109,27 @@ public class UserController {
 			response.put("name", user.getName());
 			response.put("role", user.getRole());
 
+			System.out.println("토큰 발급 완료: " + token.substring(0, 30) + "...");
 			return ResponseEntity.ok(response);
 
 		} catch (AuthenticationException e) {
+			System.out.println("❌ 인증 실패: " + e.getClass().getSimpleName());
+			System.out.println("   - 메시지: " + e.getMessage());
+			e.printStackTrace();
+			
 			Map<String, String> error = new HashMap<>();
 			error.put("error", "로그인 실패");
 			error.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
+			error.put("detail", e.getMessage()); // 디버깅용
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+		} catch (Exception e) {
+			System.out.println("❌ 예상치 못한 오류: " + e.getMessage());
+			e.printStackTrace();
+			
+			Map<String, String> error = new HashMap<>();
+			error.put("error", "서버 오류");
+			error.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 		}
 	}
 

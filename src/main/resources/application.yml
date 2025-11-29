@@ -23,7 +23,8 @@ spring:
         order_updates: true
     generate-ddl: false
 
-
+jwt:
+  secret: ${JWT_SECRET_KEY}
 #gemini key
 gemini:
   api:
