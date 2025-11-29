@@ -22,8 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ccdweb.springboot.jpa.meallog.MealLogRequestDTO;
-import com.ccdweb.springboot.jpa.meallog.MealLogService;
+import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogRequestDTO;
+import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogResponseDTO;
+import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogService;
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
 import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogService;
@@ -48,7 +49,7 @@ public class UserController {
 	private UserLogService userLogService;
 
 	@Autowired
-	private MealLogService mealLogService;
+	private MealGlucoseLogService mealGlucoseLogService;
 
 	// 중복확인
 	@PostMapping("/member/checkId")
@@ -113,12 +114,12 @@ public class UserController {
 
 	// 로그인한 사용자의 DB 정보 조회
 	@GetMapping("/member/userInfo.do")
-	public ResponseEntity<UserInfoDTO> getUserInfo(Authentication authentication) {
-		if (authentication == null) {
+	public ResponseEntity<UserInfoDTO> getUserInfo(Authentication auth) {
+		if (auth == null) {
 			return ResponseEntity.status(401).build();
 		}
 
-		String userId = (String) authentication.getPrincipal();
+		String userId = (String) auth.getPrincipal();
 		UserInfoDTO userInfo = userService.getUserInfo(userId);
 
 		return ResponseEntity.ok(userInfo);
@@ -165,91 +166,62 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 		}
 	}
-	
+
 	// 개별 혈당 조회
 	@GetMapping("/my/glucoseLog.do")
 	public ResponseEntity<List<UserLogResponseDTO>> getMyLogs(
-			@AuthenticationPrincipal String userId,
+			Authentication auth,
 			@RequestParam(name = "year", required = false) Integer year,
-            @RequestParam(name = "month", required = false) Integer month
-			) {
+			@RequestParam(name = "month", required = false) Integer month) {
 
-		if (userId == null)
+		if (auth == null) {
 			return ResponseEntity.status(401).build();
+		}
+
+		String userId = (String) auth.getPrincipal();
 
 		LocalDate today = LocalDate.now();
-        int y = (year != null) ? year : today.getYear();
-        int m = (month != null) ? month : today.getMonthValue();
+		int y = (year != null) ? year : today.getYear();
+		int m = (month != null) ? month : today.getMonthValue();
 
-        List<UserLogEntity> logs = userLogService.getUserLogsMonth(userId, y, m);
-        
-        
-        List<UserLogResponseDTO> result = logs.stream()
-        		.map(UserLogResponseDTO::fromEntity)
-        		.toList();
-        
-        return ResponseEntity.ok(result);
+		List<UserLogEntity> logs = userLogService.getUserLogsMonth(userId, y, m);
+
+		List<UserLogResponseDTO> result = logs.stream().map(UserLogResponseDTO::fromEntity).toList();
+
+		return ResponseEntity.ok(result);
 	}
-	
-	// 사용자가 먹은 식단(meal_log), 혈당 기록 저장(user_log)
-	@PostMapping("/my/MealAndUserLogAdd.do")
-	public ResponseEntity<?> mealPredict(@AuthenticationPrincipal String userId,
-        @RequestBody MealLogRequestDTO request) {
-		
-		if(userId == null){
+
+	// 식단 + 혈당 저장 -> MealGlucoseLogService
+	@PostMapping("/my/saveGlucose.do")
+	public ResponseEntity<?> addUserLog(Authentication auth,
+			@RequestBody MealGlucoseLogRequestDTO dto) {
+
+		if (auth == null) {
 			return ResponseEntity.status(401).build();
 		}
 
-		UserLogResponseDTO response = mealLogService.saveMealAndPredict(userId, request);
+		String userId = (String) auth.getPrincipal();
 
+		MealGlucoseLogResponseDTO response =
+                mealGlucoseLogService.saveMealAndGlucose(userId, dto);
+		
 		return ResponseEntity.ok(response);
 	}
-
-	// 혈당 데이터 삭제
+	
+	// 혈당 데이터 삭제 -> MealGlucoseLogService
 	@DeleteMapping("/my/delete.do")
-	public ResponseEntity<?> delete(@AuthenticationPrincipal String userId,
-		@RequestParam("logId") UUID logId){
+	public ResponseEntity<?> delete(Authentication auth,
+			@RequestParam("logId") UUID logId) {
 
-		if (userId == null) {
+		if (auth == null) {
 			return ResponseEntity.status(401).build();
 		}
 
-		userLogService.deleteUserLog(userId, logId);
+		String userId = (String) auth.getPrincipal();
+
+		mealGlucoseLogService.deleteLogs(userId, logId);
 
 		return ResponseEntity.ok("삭제되었습니다.");
 	}
-	// userLog table에 개인 혈당 입력
-	// @PostMapping("/my/glucoseAdd.do")
-	// public ResponseEntity<?> addUserLog(
-    //         @AuthenticationPrincipal String userId,
-    //         @RequestBody UserLogRequestDTO request) {
 
-    //     if (userId == null) {
-    //         return ResponseEntity.status(401).body("로그인이 필요합니다.");
-    //     }
-
-    //     Integer glucose = request.getGlucose();
-
-    //     if (glucose == null) {
-    //         return ResponseEntity.badRequest().body("혈당값(glucose)은 필수입니다.");
-    //     }
-
-    //     // 서비스 호출 -> 엔티티 저장
-    //     UserLogEntity saved = userLogService.saveUserLog(userId, glucose);
-
-    //     // 엔티티 → DTO 변환
-    //     UserLogResponseDTO response = UserLogResponseDTO.fromEntity(saved);
-        
-    //     return ResponseEntity.ok(response);
-    // }
-
-//	//전체조회
-//	@GetMapping("/selectAll.do")
-//	public String selectAll(Model model) {
-//	}
-//	
-//	//수정
-//	@GetMapping("/update.do")
-//	public String update(MemberEntity memberTable) {
-//	}
 }

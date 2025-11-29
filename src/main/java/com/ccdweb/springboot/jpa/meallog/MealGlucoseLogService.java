@@ -1,6 +1,7 @@
 package com.ccdweb.springboot.jpa.meallog;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,12 +10,11 @@ import com.ccdweb.springboot.jpa.UserEntity;
 import com.ccdweb.springboot.jpa.UserRepository;
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
 import com.ccdweb.springboot.jpa.userlog.UserLogRepository;
-import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
 
 import jakarta.transaction.Transactional;
 
 @Service
-public class MealLogService {
+public class MealGlucoseLogService {
     @Autowired
     private UserRepository userRepository;
 
@@ -23,11 +23,6 @@ public class MealLogService {
 
     @Autowired
     private UserLogRepository userLogRepository;
-
-    // 실제 혈당 예측 모델 호출 부분 (임시로 120~200 랜덤)
-    private int predictGlucose(MealLogEntity meal) {
-        return 120 + (int)(Math.random() * 80);
-    }
 
     /**
      * 전체 흐름:
@@ -38,7 +33,8 @@ public class MealLogService {
      */
 
     @Transactional
-    public UserLogResponseDTO saveMealAndPredict(String userId, MealLogRequestDTO dto) {
+    public MealGlucoseLogResponseDTO saveMealAndGlucose(String userId, 
+    		MealGlucoseLogRequestDTO dto) {
 
         // 1) 사용자 조회
         UserEntity user = userRepository.findByUserId(userId)
@@ -48,24 +44,41 @@ public class MealLogService {
         MealLogEntity meal = new MealLogEntity();
         meal.setUser(user);
         meal.setMeal_description(dto.getMealDescription());
-        meal.setLogTime(LocalDateTime.now());
         mealLogRepository.save(meal);  // mealId 생성됨
 
-        // 3) 모델 혈당 예측 부분 추후 수정 필요
-        int predicted = predictGlucose(meal);
-
-        // 4) 혈당 로그 입력 (meal_id FK 연동)
+        // 3) 혈당 로그 입력 (meal_id FK 연동)
         UserLogEntity log = new UserLogEntity();
         log.setUser(user);
         log.setMeal(meal);               // FK 설정
-        log.setGlucose(predicted);
+        log.setGlucose(dto.getGlucose());
         log.setLogTime(LocalDateTime.now());
         userLogRepository.save(log);
 
-        // 5) DTO로 변환 (프론트에 반환)
-        return UserLogResponseDTO.builder()
+        // 4) 응답 DTO 구성
+        return MealGlucoseLogResponseDTO.builder()
+        		.logId(log.getLogid())
+                .mealId(meal.getMealid())
+                .mealDescription(meal.getMeal_description())
                 .glucose(log.getGlucose())
                 .logTime(log.getLogTime())
                 .build();
-    }    
+    }   
+    
+    // 기록 삭제
+    @Transactional
+    public void deleteLogs(String userId, UUID logId){
+        UserLogEntity log = userLogRepository.findByLogidAndUserUserId(logId, userId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 기록이 없습니다."));
+        
+        // 연결된 식단
+        MealLogEntity meal = log.getMeal(); 
+        
+        // 1) 먼저 user_log 삭제 (FK 때문에)
+        userLogRepository.delete(log);
+
+        // 2) 그 다음 연결된 meal_log 삭제
+        if (meal != null) {
+            mealLogRepository.delete(meal);
+        }
+    }
 }

@@ -2,10 +2,12 @@ package com.ccdweb.springboot.jpa.meallog;
 
 import lombok.Data;
 
+// 식단 + 혈당 동시에 저장
+
 @Data
-public class MealLogRequestDTO {
+public class MealGlucoseLogRequestDTO {
     private String mealDescription;  // 사용자가 입력한 식단 설명
-    // 모델 예측에 사용할 영양정보
-	// 추가 작성 필요
+	private Integer glucose;
+    // 영양성분 필요시 나중에 추가
     
 }
