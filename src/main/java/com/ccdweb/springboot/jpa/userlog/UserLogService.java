@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,4 +51,11 @@ public class UserLogService {
         return userLogRepository.save(log);
     }
 
+    // 기록 삭제
+    @Transactional
+    public void deleteUserLog(String userId, UUID logId){
+        UserLogEntity log = userLogRepository.findByLogidAndUserUserId(logId, userId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 기록이 없습니다."));
+        userLogRepository.delete(log);
+    }
 }
