@@ -1,5 +1,7 @@
 package com.ccdweb.springboot.nutrition.controller;
 
+import com.ccdweb.springboot.nutrition.dto.NutritionCalculateRequest;
+import com.ccdweb.springboot.nutrition.dto.NutritionResponse;
 import com.ccdweb.springboot.nutrition.entity.FoodEntity;
 import com.ccdweb.springboot.nutrition.service.FoodService;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +34,11 @@ public class FoodController {
     public ResponseEntity<List<FoodEntity>> getFoodsByCategory(@PathVariable String category) {
         List<FoodEntity> results = foodService.getByCategory(category);
         return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("/calculate-nutrition")
+    public ResponseEntity<NutritionResponse> calculateNutrition(@RequestBody NutritionCalculateRequest request) {
+        NutritionResponse response = foodService.calculateTotalNutrition(request.getFoods());
+        return ResponseEntity.ok(response);
     }
 }
