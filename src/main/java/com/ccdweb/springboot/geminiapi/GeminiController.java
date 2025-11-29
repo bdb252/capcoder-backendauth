@@ -124,7 +124,7 @@ public class GeminiController {
             String mimeType = image.getContentType();
             
         	return ResponseEntity.ok().body(geminiService.getContentsWithImage(
-                "이 음식 사진을 분석해서 음식 이름을 'meal_description'로, 일반적인 영양 성분을 'calorie', 'total_carb', 'sugar', 'protein', 'total_fat'로 계산해서 알려줘"
+                "이 음식 사진을 분석해서 음식 이름을 한국어로 'meal_description'로, 일반적인 영양 성분을 'calorie', 'total_carb', 'sugar', 'protein', 'total_fat'로 계산해서 알려줘"
                 + "사진에 음식이 여러개 있으면 모두 분석해서 결과를 500자 이내로 응답해줘."
         		+ "앞뒤로 텍스트 붙이지 말고 json형식으로만 응답해줘.",
             		base64Image,
