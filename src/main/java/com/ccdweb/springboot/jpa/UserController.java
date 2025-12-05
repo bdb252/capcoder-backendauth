@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogRequestDTO;
 import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogResponseDTO;
 import com.ccdweb.springboot.jpa.meallog.MealGlucoseLogService;
+import com.ccdweb.springboot.jpa.meallog.TopKMealDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogEntity;
 import com.ccdweb.springboot.jpa.userlog.UserLogResponseDTO;
 import com.ccdweb.springboot.jpa.userlog.UserLogService;
@@ -245,4 +246,24 @@ public class UserController {
 		return ResponseEntity.ok("삭제되었습니다.");
 	}
 
+	// 한달간 먹은 top-3 음식 반환
+	@GetMapping("/my/topKMeal")
+	public ResponseEntity<List<TopKMealDTO>> getTopMeals(Authentication auth,
+			@RequestParam(name = "year", required = false) Integer year,
+			@RequestParam(name = "month", required = false) Integer month) {
+		if (auth == null) {
+			return ResponseEntity.status(401).build();
+		}
+
+		String userId = (String) auth.getPrincipal();
+
+		LocalDate today = LocalDate.now();
+		int y = (year != null) ? year : today.getYear();
+		int m = (month != null) ? month : today.getMonthValue();
+
+		List<TopKMealDTO> result = mealGlucoseLogService.getTopKMealofMonth(userId, y, m, 3);
+
+		return ResponseEntity.ok(result);
+	}
+	
 }

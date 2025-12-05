@@ -1,7 +1,13 @@
 package com.ccdweb.springboot.jpa.meallog;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,4 +87,33 @@ public class MealGlucoseLogService {
             mealLogRepository.delete(meal);
         }
     }
+
+    public List<TopKMealDTO> getTopKMealofMonth(String userId, int year, int month, int limit){
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+        LocalDateTime start = firstDay.atStartOfDay();
+        LocalDateTime end   = firstDay.plusMonths(1).atStartOfDay();
+
+        // 1) 해당 달의 모든 meal_description 가져오기
+        List<String> descriptions = mealLogRepository
+                .findMealDescriptionsByUserAndDateRange(userId, start, end);
+
+        // 2) "," 기준으로 split해서 음식 이름 뽑고, trim 후 카운트
+        Map<String, Long> countMap = descriptions.stream()
+                .filter(Objects::nonNull)
+                .flatMap(desc -> Arrays.stream(desc.split(","))) // "떡볶이", " 삶은 계란"
+                .map(String::trim)                              // "떡볶이", "삶은 계란"
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.groupingBy(
+                        s -> s,
+                        Collectors.counting()
+                ));
+                
+        // 3) 많이 먹은 순으로 정렬해서 상위 limit개 자르기
+        return countMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(e -> new TopKMealDTO(e.getKey(), e.getValue()))
+                .toList(); 
+    }
+
 }
