@@ -43,7 +43,8 @@ public class WebSecurityConfig {
 					// .requestMatchers("/index.do", "/login.do", "/regist.do","/myError.do").permitAll()
 					// .requestMatchers("/error").permitAll()
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					.requestMatchers("/api/member/checkId", "/api/member/regist.do", "/api/member/loginAction.do").permitAll()
+					.requestMatchers("/api/member/checkId", "/api/member/regist.do", "/api/member/loginAction.do", 
+												"/api/food/**").permitAll()
 					.anyRequest().authenticated()
 			);
 		
