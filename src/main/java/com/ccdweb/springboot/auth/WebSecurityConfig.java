@@ -42,12 +42,9 @@ public class WebSecurityConfig {
 					// .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
 					// .requestMatchers("/index.do", "/login.do", "/regist.do","/myError.do").permitAll()
 					// .requestMatchers("/error").permitAll()
-					// .requestMatchers("/gemini/imagedb").permitAll()
-					// .requestMatchers("/mypage.do", "/member/mypage.do").permitAll()
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					.requestMatchers("/api/member/**").permitAll()
-					.anyRequest().permitAll()
-					// .anyRequest().authenticated()
+					.requestMatchers("/api/member/checkId", "/api/member/regist.do", "/api/member/loginAction.do").permitAll()
+					.anyRequest().authenticated()
 			);
 		
 		// JWT 필터 추가
@@ -55,20 +52,8 @@ public class WebSecurityConfig {
 
 				
 		http.formLogin((formLogin) -> formLogin.disable());
-//		http.formLogin((formLogin) -> formLogin
-//				.loginPage("/login.do") //view 
-//				.loginProcessingUrl("/api/member/loginAction.do") //api
-//				.failureHandler(myAuthFailureHandler)
-//				.usernameParameter("userId") //default : username
-//				.passwordParameter("password") //default : password
-//				.defaultSuccessUrl("/index.do", true)
-//				.failureUrl("/myError.do") //default : /login?error
-//				.permitAll());
 
 		http.logout((logout) -> logout.disable());
-				// .logoutUrl("/api/member/logout.do")
-				// .logoutSuccessUrl("/")
-				// .permitAll());
 		
 		http.exceptionHandling((exceptionHandling) -> exceptionHandling
 	            .authenticationEntryPoint((req, res, e) -> res.sendError(401, "Unauthorized"))
