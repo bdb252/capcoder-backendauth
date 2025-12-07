@@ -44,7 +44,7 @@ public class WebSecurityConfig {
 					// .requestMatchers("/error").permitAll()
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 					.requestMatchers("/api/member/checkId", "/api/member/regist.do", "/api/member/loginAction.do", 
-												"/api/food/**").permitAll()
+												"/api/food/**", "/api/gemini/imagedb").permitAll()
 					.anyRequest().authenticated()
 			);
 		
